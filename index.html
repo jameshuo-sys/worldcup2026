@@ -14,10 +14,10 @@
   --card2:    #121926;
   --border:   #1a2535;
   --border2:  #243245;
-  --gold:     #c9a84c;
-  --gold-lt:  #e8c97a;
-  --gold-dk:  #7a5e22;
-  --gold-glow:#c9a84c18;
+  --gold:     #d9b779;
+  --gold-lt:  #ecd49a;
+  --gold-dk:  #8a6e35;
+  --gold-glow:#d9b77918;
   --green:    #34d399;
   --red:      #f87171;
   --text:     #dde4f0;
@@ -34,7 +34,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Inter', 'Noto Sans TC', sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
@@ -42,93 +42,115 @@ body {
 /* ── HERO ─────────────────────────── */
 .hero {
   position: relative;
-  padding: 64px 24px 52px;
-  text-align: center;
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
-  background: var(--bg);
+  background: #060810;
 }
-.hero::before {
-  content: '';
+/* deep background gradient */
+.hero-bg {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 70% 55% at 50% -10%, #c9a84c14 0%, transparent 65%),
-    radial-gradient(ellipse 40% 30% at 50% 100%, #0d1c3a 0%, transparent 70%);
-  pointer-events: none;
+    radial-gradient(ellipse 70% 60% at 50% 40%, #0d1a2e 0%, transparent 65%),
+    linear-gradient(160deg, #060810 0%, #0b1322 50%, #06080e 100%);
 }
-/* decorative corner lines */
+/* geometric pattern overlay */
+.hero-pattern {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.045;
+}
+/* gold top line */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-dk) 30%, var(--gold) 50%, var(--gold-dk) 70%, transparent);
+  z-index: 3;
+}
+/* gold bottom line */
 .hero::after {
   content: '';
   position: absolute;
-  top: 28px; left: 50%; transform: translateX(-50%);
-  width: min(600px, 90vw); height: 2px;
+  bottom: 0; left: 0; right: 0; height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold-dk) 30%, var(--gold) 50%, var(--gold-dk) 70%, transparent);
+  z-index: 3;
 }
+/* gold ribbon wave */
 
-.hero-emblem {
+/* centered content wrapper matching container width */
+.hero-inner {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 64px; height: 64px;
-  margin: 0 auto 24px;
-}
-.hero-emblem svg {
-  filter: drop-shadow(0 0 14px #c9a84c60);
+  z-index: 4;
+  width: 100%;
+  max-width: 1280px;
+  padding: 52px 20px;
 }
 
+/* text — left aligned inside centered wrapper */
+.hero-content {
+  max-width: 580px;
+}
 .hero-eyebrow {
   font-size: 10px;
   letter-spacing: 5px;
   text-transform: uppercase;
   color: var(--gold);
   font-weight: 500;
-  margin-bottom: 14px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
-
+.hero-eyebrow::before {
+  content: '';
+  width: 32px; height: 1px;
+  background: var(--gold);
+  display: inline-block;
+}
 .hero h1 {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 300;
-  font-size: clamp(44px, 9vw, 88px);
-  letter-spacing: 10px;
-  line-height: 1;
+  font-size: clamp(52px, 7vw, 96px);
+  letter-spacing: 8px;
+  line-height: 0.95;
   color: var(--text);
+  margin-bottom: 6px;
 }
 .hero h1 em {
   font-style: normal;
   color: var(--gold-lt);
+  display: block;
 }
-
 .hero-divider {
   display: flex;
   align-items: center;
-  gap: 16px;
-  justify-content: center;
-  margin: 20px auto 18px;
-  max-width: 360px;
+  gap: 14px;
+  margin: 20px 0 18px;
+  max-width: 280px;
 }
 .hero-divider-line {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--gold-dk));
-}
-.hero-divider-line:last-child {
+  flex: 1; height: 1px;
   background: linear-gradient(90deg, var(--gold-dk), transparent);
 }
 .hero-divider-diamond {
-  width: 6px; height: 6px;
+  width: 5px; height: 5px;
   border: 1px solid var(--gold);
   transform: rotate(45deg);
   flex-shrink: 0;
 }
-
 .hero-sub {
   color: var(--text2);
   font-size: 12px;
-  letter-spacing: 2.5px;
+  letter-spacing: 2px;
   text-transform: uppercase;
+  margin-bottom: 24px;
 }
-
 .live-pill {
   display: inline-flex;
   align-items: center;
@@ -141,7 +163,6 @@ body {
   letter-spacing: 2px;
   padding: 5px 14px;
   border-radius: 2px;
-  margin-top: 20px;
   text-transform: uppercase;
 }
 .live-dot {
@@ -151,6 +172,13 @@ body {
   animation: blink 1.4s ease-in-out infinite;
 }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+/* responsive hero */
+@media (max-width: 640px) {
+  .hero { min-height: 240px; }
+  .hero-inner { padding: 36px 20px; }
+  .hero h1 { font-size: clamp(44px, 13vw, 68px); letter-spacing: 4px; }
+}
 
 /* ── LAYOUT ─────────────────────────── */
 .container { max-width: 1280px; margin: 0 auto; padding: 36px 20px 80px; }
@@ -267,7 +295,7 @@ body {
   background: linear-gradient(90deg, transparent 10%, var(--red) 50%, transparent 90%);
 }
 .match-card.final-card {
-  border-color: #c9a84c20;
+  border-color: #d9b77920;
 }
 .match-card.final-card::after {
   content: '';
@@ -283,7 +311,7 @@ body {
   margin-bottom: 16px;
 }
 .group-tag {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 1.5px;
   color: var(--text3);
@@ -294,7 +322,7 @@ body {
   white-space: nowrap;
 }
 .match-status {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   padding: 3px 10px;
   border-radius: 1px;
@@ -341,7 +369,7 @@ body {
 }
 
 .team-name-en {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   text-align: center;
   color: var(--text);
@@ -352,7 +380,7 @@ body {
   max-width: 100%;
 }
 .team-name-zh {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 400;
   text-align: center;
   color: var(--text2);
@@ -406,9 +434,9 @@ body {
   justify-content: space-between;
   gap: 8px;
 }
-.match-time { font-size: 11px; color: var(--text2); letter-spacing: .5px; }
+.match-time { font-size: 12px; color: var(--text2); letter-spacing: .5px; }
 .match-venue {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text3);
   text-align: right;
   white-space: nowrap;
@@ -422,13 +450,13 @@ body {
 .standings-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: 13px;
   margin-bottom: 32px;
 }
 .standings-table th {
   background: var(--surface);
   color: var(--text3);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -447,7 +475,7 @@ body {
 .standings-table tbody tr:hover td { background: var(--card); }
 .qualify-row td:first-child  { border-left: 2px solid var(--green); }
 .qualify3-row td:first-child { border-left: 2px solid var(--gold); }
-.rank-num { color: var(--text3); font-size: 10px; width: 18px; display: inline-block; text-align: center; }
+.rank-num { color: var(--text3); font-size: 11px; width: 18px; display: inline-block; text-align: center; }
 .team-cell { display: flex; align-items: center; gap: 10px; }
 .cell-flag {
   width: 28px; height: 20px;
@@ -459,9 +487,9 @@ body {
 }
 .cell-flag img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .team-name-cell { display: flex; flex-direction: column; gap: 1px; }
-.cell-en { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; }
-.cell-zh { font-size: 10px; color: var(--text3); font-family: 'Noto Sans TC', sans-serif; white-space: nowrap; }
-.pts-cell { font-weight: 700; color: var(--gold-lt); font-size: 13px; }
+.cell-en { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; }
+.cell-zh { font-size: 11px; color: var(--text3); font-family: 'Noto Sans TC', sans-serif; white-space: nowrap; }
+.pts-cell { font-weight: 700; color: var(--gold-lt); font-size: 14px; }
 .gd-pos { color: var(--green); }
 .gd-neg { color: var(--red); }
 
@@ -502,35 +530,53 @@ footer {
 <body>
 
 <div class="hero">
-  <div class="hero-eyebrow">FIFA World Cup™</div>
-  <div class="hero-emblem">
-    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- outer ring -->
-      <circle cx="32" cy="32" r="30" stroke="#c9a84c" stroke-width="0.8" opacity="0.6"/>
-      <!-- inner ring -->
-      <circle cx="32" cy="32" r="24" stroke="#c9a84c" stroke-width="0.5" opacity="0.35"/>
-      <!-- trophy cup body -->
-      <path d="M24 18 H40 L37 34 Q32 38 27 34 Z" stroke="#c9a84c" stroke-width="1.2" fill="none" stroke-linejoin="round"/>
-      <!-- trophy handles -->
-      <path d="M24 20 Q18 20 18 26 Q18 31 24 31" stroke="#c9a84c" stroke-width="1" fill="none"/>
-      <path d="M40 20 Q46 20 46 26 Q46 31 40 31" stroke="#c9a84c" stroke-width="1" fill="none"/>
-      <!-- stem -->
-      <line x1="32" y1="38" x2="32" y2="44" stroke="#c9a84c" stroke-width="1.2"/>
-      <!-- base -->
-      <line x1="26" y1="44" x2="38" y2="44" stroke="#c9a84c" stroke-width="1.4"/>
-      <!-- shine dots -->
-      <circle cx="28" cy="23" r="1" fill="#e8c97a" opacity="0.6"/>
-      <circle cx="32" cy="21" r="1" fill="#e8c97a" opacity="0.4"/>
-    </svg>
+  <div class="hero-bg"></div>
+
+  <!-- geometric cube/herringbone pattern (sparse, not filled) -->
+  <svg class="hero-pattern" viewBox="0 0 120 104" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <pattern id="cubepat" x="0" y="0" width="120" height="104" patternUnits="userSpaceOnUse">
+        <!-- isometric cube pattern: 3 rhombus faces -->
+        <!-- top face -->
+        <polygon points="60,0 120,30 60,60 0,30" fill="none" stroke="#d9b779" stroke-width="0.5"/>
+        <!-- left face -->
+        <polygon points="0,30 60,60 60,104 0,74" fill="none" stroke="#d9b779" stroke-width="0.5"/>
+        <!-- right face -->
+        <polygon points="120,30 60,60 60,104 120,74" fill="none" stroke="#d9b779" stroke-width="0.5"/>
+        <!-- internal lines top face -->
+        <line x1="60" y1="0" x2="60" y2="60" stroke="#d9b779" stroke-width="0.3" opacity="0.5"/>
+        <line x1="0" y1="30" x2="120" y2="30" stroke="#d9b779" stroke-width="0.3" opacity="0.5"/>
+        <!-- internal lines left face -->
+        <line x1="0" y1="52" x2="60" y2="82" stroke="#d9b779" stroke-width="0.3" opacity="0.5"/>
+        <line x1="0" y1="74" x2="30" y2="60" stroke="#d9b779" stroke-width="0.3" opacity="0.5"/>
+        <!-- internal lines right face -->
+        <line x1="120" y1="52" x2="60" y2="82" stroke="#d9b779" stroke-width="0.3" opacity="0.5"/>
+        <line x1="120" y1="74" x2="90" y2="60" stroke="#d9b779" stroke-width="0.3" opacity="0.5"/>
+      </pattern>
+      <!-- fade mask: bright center, dark edges -->
+      <radialGradient id="pmask" cx="50%" cy="50%" r="55%">
+        <stop offset="0%" stop-color="white" stop-opacity="1"/>
+        <stop offset="60%" stop-color="white" stop-opacity="0.3"/>
+        <stop offset="100%" stop-color="white" stop-opacity="0"/>
+      </radialGradient>
+      <mask id="pm"><rect width="100%" height="100%" fill="url(#pmask)"/></mask>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#cubepat)" mask="url(#pm)"/>
+  </svg>
+
+  <!-- centered wrapper (same max-width as .container) -->
+  <div class="hero-inner">
+    <div class="hero-content">
+      <div class="hero-eyebrow">FIFA World Cup™</div>
+      <h1>WORLD CUP<em>2026</em></h1>
+      <div class="hero-divider">
+        <div class="hero-divider-line"></div>
+        <div class="hero-divider-diamond"></div>
+      </div>
+      <div class="hero-sub">Canada · Mexico · United States &nbsp;｜&nbsp; 11 Jun – 19 Jul</div>
+      <span class="live-pill"><span class="live-dot"></span>即時賽果自動更新</span>
+    </div>
   </div>
-  <h1>WORLD CUP <em>2026</em></h1>
-  <div class="hero-divider">
-    <div class="hero-divider-line"></div>
-    <div class="hero-divider-diamond"></div>
-    <div class="hero-divider-line"></div>
-  </div>
-  <div class="hero-sub">Canada · Mexico · United States &nbsp;｜&nbsp; 11 Jun – 19 Jul 2026</div>
-  <div><span class="live-pill"><span class="live-dot"></span>即時賽果自動更新</span></div>
 </div>
 
 <div class="container">
