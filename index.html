@@ -151,6 +151,12 @@ body {
   text-transform: uppercase;
   margin-bottom: 24px;
 }
+.hero-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 .live-pill {
   display: inline-flex;
   align-items: center;
@@ -172,6 +178,30 @@ body {
   animation: blink 1.4s ease-in-out infinite;
 }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+.notify-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--border2);
+  background: none;
+  color: var(--text2);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  padding: 5px 14px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .2s;
+}
+.notify-btn:hover { border-color: var(--gold-dk); color: var(--gold-lt); }
+.notify-btn.active {
+  border-color: var(--gold);
+  background: var(--gold-glow);
+  color: var(--gold-lt);
+}
 
 /* responsive hero */
 @media (max-width: 640px) {
@@ -596,7 +626,16 @@ footer {
         <div class="hero-divider-diamond"></div>
       </div>
       <div class="hero-sub">Canada · Mexico · United States &nbsp;｜&nbsp; 11 Jun – 19 Jul</div>
-      <span class="live-pill"><span class="live-dot"></span>即時賽果自動更新</span>
+      <div class="hero-actions">
+        <span class="live-pill"><span class="live-dot"></span>即時賽果自動更新</span>
+        <button class="notify-btn" id="notify-btn" onclick="toggleNotifications()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 01-3.46 0"/>
+          </svg>
+          <span id="notify-label">開啟比賽推播</span>
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -748,7 +787,127 @@ const LIVE_STATUSES = new Set([
   'STATUS_IN_PROGRESS', 'STATUS_HALFTIME', 'in', 'live'
 ]);
 
-function parseStatus(comp) {
+// ── NOTIFICATIONS ────────────────────────────────────────
+const NOTIFY_KEY = 'wc2026_notify_enabled';
+let notifyEnabled = false;
+// snapshot of previous match states, keyed by event id
+// { status: 'live'|'final'|'sched', homeScore, awayScore }
+let prevMatchState = {};
+
+function initNotifications() {
+  notifyEnabled = (sessionStorage.getItem(NOTIFY_KEY) === '1')
+    && ('Notification' in window) && Notification.permission === 'granted';
+  updateNotifyBtn();
+}
+
+function updateNotifyBtn() {
+  const btn = document.getElementById('notify-btn');
+  const label = document.getElementById('notify-label');
+  if (!btn) return;
+  if (notifyEnabled) {
+    btn.classList.add('active');
+    label.textContent = '推播已開啟';
+  } else {
+    btn.classList.remove('active');
+    label.textContent = '開啟比賽推播';
+  }
+}
+
+async function toggleNotifications() {
+  if (!('Notification' in window)) {
+    alert('您的瀏覽器不支援通知功能');
+    return;
+  }
+
+  if (notifyEnabled) {
+    notifyEnabled = false;
+    sessionStorage.setItem(NOTIFY_KEY, '0');
+    updateNotifyBtn();
+    return;
+  }
+
+  let perm = Notification.permission;
+  if (perm === 'default') {
+    perm = await Notification.requestPermission();
+  }
+
+  if (perm === 'granted') {
+    notifyEnabled = true;
+    sessionStorage.setItem(NOTIFY_KEY, '1');
+    new Notification('世界盃賽果推播已開啟', {
+      body: '開賽、完場、進球時將會通知您（請保持此頁面開啟）',
+      icon: 'https://flagcdn.com/w40/us.png'
+    });
+  } else {
+    alert('請允許瀏覽器通知權限以使用此功能');
+  }
+  updateNotifyBtn();
+}
+
+function sendNotification(title, body) {
+  if (!notifyEnabled || !('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    new Notification(title, { body, icon: 'https://flagcdn.com/w40/us.png' });
+  } catch(e) { /* ignore */ }
+}
+
+function matchLabel(home, away) {
+  const hi = teamInfo(home), ai = teamInfo(away);
+  const hLabel = hi.zh ? `${home}(${hi.zh})` : home;
+  const aLabel = ai.zh ? `${away}(${ai.zh})` : away;
+  return `${hLabel} vs ${aLabel}`;
+}
+
+// Compare current events against previous snapshot, fire notifications, update snapshot
+function detectChangesAndNotify(events) {
+  const isFirstLoad = Object.keys(prevMatchState).length === 0;
+  const nextState = {};
+
+  for (const ev of events) {
+    const comp = ev.competitions?.[0];
+    if (!comp) continue;
+    const home = comp.competitors?.find(c=>c.homeAway==='home') || comp.competitors?.[0];
+    const away = comp.competitors?.find(c=>c.homeAway==='away') || comp.competitors?.[1];
+    if (!home||!away) continue;
+
+    const homeName = home.team?.displayName || '';
+    const awayName = away.team?.displayName || '';
+    const status = parseStatus(comp);
+    const homeScore = home.score ?? null;
+    const awayScore = away.score ?? null;
+
+    nextState[ev.id] = { status, homeScore, awayScore };
+
+    if (!isFirstLoad && notifyEnabled) {
+      const prev = prevMatchState[ev.id];
+      if (prev) {
+        // kickoff: sched -> live
+        if (prev.status === 'sched' && status === 'live') {
+          sendNotification('⚽ 開賽',
+            `${matchLabel(homeName, awayName)} 比賽開始了！`);
+        }
+        // full time: live -> final
+        if (prev.status === 'live' && status === 'final') {
+          sendNotification('🏁 完場',
+            `${matchLabel(homeName, awayName)}　最終比分 ${homeScore} - ${awayScore}`);
+        }
+        // goal: score changed while live
+        if (status === 'live' && prev.status === 'live') {
+          const prevH = Number(prev.homeScore ?? 0), prevA = Number(prev.awayScore ?? 0);
+          const curH  = Number(homeScore ?? 0),      curA  = Number(awayScore ?? 0);
+          if (curH > prevH || curA > prevA) {
+            sendNotification('⚽ 進球！',
+              `${matchLabel(homeName, awayName)}　目前比分 ${homeScore} - ${awayScore}`);
+          }
+        }
+      }
+    }
+  }
+
+  prevMatchState = nextState;
+}
+
+
   const type  = comp.status?.type?.name  || '';
   const state = comp.status?.type?.state || '';
   const completed = comp.status?.type?.completed === true;
@@ -789,6 +948,7 @@ async function loadMatches(manual = false) {
     allEvents = allEvents.filter(e => { if(seen.has(e.id)) return false; seen.add(e.id); return true; });
     allEvents.sort((a,b) => new Date(a.date)-new Date(b.date));
 
+    detectChangesAndNotify(allEvents);
     renderMatches();
     document.getElementById('update-time').textContent =
       '最後更新：' + new Date().toLocaleString('zh-TW', {hour12: false});
@@ -1016,6 +1176,7 @@ function jumpToNextMatch() {
 }
 
 
+initNotifications();
 loadMatches();
 </script>
 </body>
