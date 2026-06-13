@@ -184,11 +184,17 @@ body {
 .container { max-width: 1280px; margin: 0 auto; padding: 36px 20px 80px; }
 
 /* ── TABS ─────────────────────────── */
+.tabs-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid var(--border);
+}
 .tabs {
   display: flex;
   gap: 0;
-  margin-bottom: 32px;
-  border-bottom: 1px solid var(--border);
 }
 .tab {
   flex-shrink: 0;
@@ -236,7 +242,23 @@ body {
   transition: all .2s;
   letter-spacing: .5px;
 }
-.refresh-btn:hover { border-color: var(--gold-dk); color: var(--gold-lt); }
+.next-match-btn {
+  display: flex; align-items: center; gap: 7px;
+  background: none;
+  border: 1px solid var(--gold-dk);
+  color: var(--gold-lt);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: inherit;
+  padding: 6px 16px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: .5px;
+  margin-bottom: 6px;
+  white-space: nowrap;
+}
+.next-match-btn:hover { background: var(--gold-dk); color: #fff; }
 .refresh-btn.spinning svg { animation: spin .7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -580,10 +602,18 @@ footer {
 </div>
 
 <div class="container">
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('matches')">賽程 &amp; 賽果</button>
-    <button class="tab" onclick="switchTab('standings')">積分榜</button>
-    <button class="tab" onclick="switchTab('bracket')">淘汰賽</button>
+  <div class="tabs-row">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('matches')">賽程 &amp; 賽果</button>
+      <button class="tab" onclick="switchTab('standings')">積分榜</button>
+      <button class="tab" onclick="switchTab('bracket')">淘汰賽</button>
+    </div>
+    <button class="next-match-btn" onclick="jumpToNextMatch()" title="跳到最近待賽場次">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      最近場次
+    </button>
   </div>
 
   <div id="tab-matches">
@@ -963,7 +993,29 @@ async function loadBracket() {
   el.innerHTML = html;
 }
 
-// ── INIT ─────────────────────────────────────────────────
+// ── JUMP TO NEXT MATCH ───────────────────────────────────
+function jumpToNextMatch() {
+  // Switch to matches tab first
+  switchTab('matches');
+
+  // Find the first scheduled (upcoming) match card
+  setTimeout(() => {
+    const cards = document.querySelectorAll('.match-card');
+    for (const card of cards) {
+      const statusEl = card.querySelector('.match-status');
+      if (statusEl && statusEl.textContent.trim() === '待賽') {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // brief highlight flash
+        card.style.transition = 'border-color .3s';
+        card.style.borderColor = 'var(--gold)';
+        setTimeout(() => { card.style.borderColor = ''; }, 1200);
+        return;
+      }
+    }
+  }, 100);
+}
+
+
 loadMatches();
 </script>
 </body>
