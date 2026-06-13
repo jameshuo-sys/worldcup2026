@@ -907,7 +907,7 @@ function detectChangesAndNotify(events) {
   prevMatchState = nextState;
 }
 
-
+function parseStatus(comp) {
   const type  = comp.status?.type?.name  || '';
   const state = comp.status?.type?.state || '';
   const completed = comp.status?.type?.completed === true;
